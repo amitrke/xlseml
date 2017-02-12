@@ -1,34 +1,68 @@
 /**
  * Created by amit on 2/12/17.
  */
+'use strict';
+
 var fs = require('fs');
 var XLSX = require('xlsx');
 var moment = require('moment');
+var sendpulse = require("sendpulse");
+var config = require("./config.json");
 
-var excelFile = "/Users/amit/Downloads/Book1.xlsx";
-var numDays = 3;
+sendpulse.init(config.email.sendpulse.key, config.email.sendpulse.secret);
 
-fs.readFile(excelFile, function (err, buffer) {
+fs.readFile(config.excelFile, function (err, buffer) {
     if (err) throw err;
-    /* convert data to binary string */
+
+    var itemsWithDueDtWithin3Days = "";
+
+    /* Read file */
     var data = new Uint8Array(buffer);
     var arr = new Array();
     for(var i = 0; i != data.length; ++i) arr[i] = String.fromCharCode(data[i]);
     var bstr = arr.join("");
-    /* Call XLSX */
+
+    /* Convert XLSX to JSON object, and read the first worksheet */
     var workbook = XLSX.read(bstr, {type:"binary"});
     var first_sheet_name = workbook.SheetNames[0];
-    var address_of_cell = 'A1';
-
-    /* Get worksheet */
     var worksheet = workbook.Sheets[first_sheet_name];
     var json = XLSX.utils.sheet_to_json(worksheet);
+
+    /* Today and the date after 3 days. */
+    var today = moment();
+    var withinNumDays = today.clone().add(config.noOfDays, 'days').startOf('day');
+
+    /* Loop through the list of items */
     for(var rowNum in json){
-        var dueDate = moment(json[rowNum]['Date Due'], "M/DD/YY");
-        var withinNumDays = dueDate.clone().subtract(numDays, 'days').startOf('day');
-        if (withinNumDays.isAfter(withinNumDays)){
-            console.log(dueDate+" is within "+numDays+" days");
+        var dueDate = moment(json[rowNum][config.dueDateColumn], "MM/DD/YY");
+        /* Check if the due date is within 3 days */
+        if (dueDate.isBetween(today, withinNumDays)){
+            itemsWithDueDtWithin3Days += "<br>"+json[rowNum]["Task Overview"]+"("+json[rowNum][config.dueDateColumn]+")</br>";
         }
-        console.log(dueDate);
+    }
+
+    /* Send email */
+    if (itemsWithDueDtWithin3Days.length > 0){
+        var email = {
+            "html" : "<pre>"+itemsWithDueDtWithin3Days+"</pre>",
+            "text" : "Your email text version goes here",
+            "subject" : "Tasks due in the next "+config.noOfDays+" days.",
+            "from" : {
+                "name" : "Your Sender Name",
+                "email" : "amitrke@gmail.com"
+            },
+            "to" : [ {
+                "name" : "Subscriber's name",
+                "email" : config.email.to
+            } ]
+        };
+
+        var answerGetter = function answerGetter(data){
+            console.log(data);
+        }
+        sendpulse.smtpSendMail(answerGetter,email);
+    }
+    else{
+        console.log("No records with due date in the next "+config.noOfDays+ " days.")
     }
 });

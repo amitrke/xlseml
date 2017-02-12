@@ -1,0 +1,12 @@
+{
+  "excelFile":"/Users/amit/Downloads/Book1.xlsx",
+  "noOfDays":3,
+  "dueDateColumn":"Date Due",
+  "email":{
+    "to":"amitrke@gmail.com",
+    "sendpulse": {
+      "key":"",
+      "secret":""
+    }
+  }
+}
