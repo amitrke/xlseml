@@ -1,12 +1,19 @@
 {
-  "excelFile":"/Users/amit/Downloads/Book1.xlsx",
+  "excelFile":"/Users/amit/Downloads/Book1-1.xlsx",
   "noOfDays":3,
-  "dueDateColumn":"Date Due",
+  "dueDateColumn":"Due Date",
   "email":{
-    "to":"amitrke@gmail.com",
+    "from" : {
+      "name" : "Your Sender Name",
+      "email" : "abc@gmail.com"
+    },
+    "to" : [ {
+      "name" : "Subscriber's name",
+      "email" : "abc@gmail.com"
+    } ],
     "sendpulse": {
-      "key":"",
-      "secret":""
+      "key":"Key",
+      "secret":"Secret"
     }
   }
 }

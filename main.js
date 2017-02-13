@@ -57,22 +57,16 @@ fs.readFile(config.excelFile, function (err, buffer) {
             "html" : "<pre>"+itemsWithDueDtWithin3Days+"</pre>",
             "text" : "Your email text version goes here",
             "subject" : "Tasks due in the next "+config.noOfDays+" days.",
-            "from" : {
-                "name" : "Your Sender Name",
-                "email" : "amitrke@gmail.com"
-            },
-            "to" : [ {
-                "name" : "Subscriber's name",
-                "email" : config.email.to
-            } ]
+            "from" : config.email.from,
+            "to" : config.email.to
         };
 
         var answerGetter = function answerGetter(data){
-            console.log(data);
+            winston.log('info', 'Email sent result '+JSON.stringify(data));
         }
         sendpulse.smtpSendMail(answerGetter,email);
     }
     else{
-        console.log("No records with due date in the next "+config.noOfDays+ " days.")
+        winston.log('info', 'No records with due date in the next '+config.noOfDays+ ' days.');
     }
 });
